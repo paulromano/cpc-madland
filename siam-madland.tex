@@ -1,6 +1,8 @@
-\documentclass[final,leqno,onefignum,onetabnum]{siamltex1213}
+\documentclass[5p]{elsarticle}
+\journal{Computer Physics Communications}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[charter]{mathdesign} % Type-1 Latin Modern modern
 \usepackage[T1]{fontenc}         % Use T1 encoding instead of OT1
 \usepackage[utf8]{inputenc}      % Use UTF8 input encoding
 \usepackage{microtype}           % Improve typography
@@ -12,8 +14,18 @@
 \usepackage{algpseudocode}
 \usepackage[exponent-product=\cdot]{siunitx}
 
-\DeclareMathOperator\expint{E_1}
+\usepackage[colorlinks,breaklinks]{hyperref}
+
+% Captions for figures and tables
+\usepackage[labelfont=bf]{caption}
+\captionsetup[figure]{labelsep=period, name=Fig.}
+\captionsetup[table]{labelsep=newline}
+
+% Set abbreviations
+\def\equationautorefname{Eq.}
+\def\figureautorefname{Fig.}
 \def\algorithmautorefname{Algorithm}
+\DeclareMathOperator\expint{E_1}
 
 \newcommand{\tmax}{T_{\mathrm{M}}}
 \newcommand{\ef}{E_{\mathrm{F}}}
@@ -21,16 +33,17 @@
 \newcommand{\efh}{E_{\mathrm{F}}^{\mathrm{H}}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
 \title{An algorithm for generating random variates from the Madland-Nix fission
   energy spectrum}
 
-\author{Paul K. Romano\thanks{Bechtel Marine Propulsion Corporation -- Knolls
-    Atomic Power Laboratory, P.O. Box 1072, Schenectady, NY 12301, United
-    States (\email{paul.romano@unnpp.gov})}}
+\author{Paul K. Romano\corref{cor1}}
+\ead{paul.romano@unnpp.gov}
+\cortext[cor1]{Corresponding author. Tel.: +1 518 395 4010.}
 
-\begin{document}
-\slugger{sisc}{2014}{xx}{x}{Axxx--Axxx}
-\maketitle
+\address{Bechtel Marine Propulsion Corporation -- Knolls Atomic Power
+  Laboratory \\ P.O. Box 1072, Schenectady, NY 12301, United States}
 
 \begin{abstract}
   An algorithm for generating random variates from the Madland-Nix fission
@@ -43,20 +56,11 @@
   Madland-Nix energy spectrum.
 \end{abstract}
 
-\begin{keywords}
+\begin{keyword}
   Madland-Nix, fission, spectrum, random variate, algorithm
-\end{keywords}
+\end{keyword}
 
-\begin{AMS}62P35, 65C05, 65C10, 65C35\end{AMS}
-% 62P35 = Statistics, Applications to Physics
-% 65C05 = Numerical Analysis, Monte carlo methods
-% 65C10 = Numerical Analysis, Random number generation
-% 65C35 = Numerical Analysis, Stochastic particle methods
-
-\pagestyle{myheadings}
-\thispagestyle{plain}
-\markboth{PAUL~K. ROMANO}{RANDOM VARIATE GENERATION FROM THE MADLAND-NIX
-  SPECTRUM}
+\maketitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
@@ -160,7 +164,7 @@ triangular distribution as
 \end{equation}
 where $\tmax$ is the maximum nuclear temperature. Thus, the center-of-mass energy
 distribution of neutrons emitted from fission fragments is obtained by averaging
-\eqref{eq:evaporation} over the temperature distribution in \eqref{eq:triangle}:
+\autoref{eq:evaporation} over the temperature distribution in \autoref{eq:triangle}:
 \begin{equation}
   \Phi(\epsilon) = \int_0^\infty \phi(\epsilon) P(T) dT =
   \frac{2\epsilon}{\tmax^2} \expint ( \epsilon/\tmax )
@@ -181,16 +185,13 @@ function in the laboratory system can be shown to be~\cite{physrev-terrell-1959}
   \frac{\Phi(\epsilon)}{\sqrt{\epsilon}} d\epsilon.
   \label{eq:com-to-lab}
 \end{equation}
-Inserting \eqref{eq:com} into \eqref{eq:com-to-lab} and evaluating the integral
+Inserting \autoref{eq:com} into \autoref{eq:com-to-lab} and evaluating the integral
 analytically yields the energy distribution in the laboratory system:
-\begin{align*}
-  g(E,\ef) &= \frac{1}{4\sqrt{\ef}} \int_{\left( \sqrt{E} - \sqrt{\ef}
-    \right)^2}^{\left( \sqrt{E} + \sqrt{\ef} \right)^2}
-  \frac{2\sqrt{\epsilon}}{\tmax^2} \expint(\epsilon/\tmax) d\epsilon \\ &=
-  \frac{1}{3\sqrt{\ef \tmax}} \left [ u_2^{3/2} \expint (u_2) - u_1^{3/2} \expint
-    (u_1) + \gamma \left( \frac{3}{2}, u_2 \right ) - \gamma \left( \frac{3}{2},
-    u_1 \right) \right ]
-\end{align*}
+\begin{multline}
+  g(E,\ef) = \frac{1}{3\sqrt{\ef \tmax}} \bigg [ u_2^{3/2} \expint (u_2) -
+    u_1^{3/2} \expint (u_1) \\ + \gamma \left( \frac{3}{2}, u_2 \right ) -
+    \gamma \left( \frac{3}{2}, u_1 \right) \bigg ]
+\end{multline}
 where $u_1 = \left ( \sqrt{E} - \sqrt{\ef} \right )^2/\tmax$, $u_2 = \left (
 \sqrt{E} + \sqrt{\ef} \right)^2/\tmax$, and $\gamma(a,x)$ is the lower incomplete
 gamma function defined as
@@ -213,7 +214,7 @@ Madland-Nix energy spectrum is
 This equation is equivalent to the representation in the ENDF-6
 format~\cite{bnl-trkov-2012} under File 5, LF=12.
 
-Strictly speaking, \eqref{eq:spectrum} still ignores the dependence of the
+Strictly speaking, \autoref{eq:spectrum} still ignores the dependence of the
 center-of-mass energy spectrum on the cross section for the inverse process of
 compound nucleus formation that Madland and Nix had accounted for. However, the
 ENDF-6 format only includes the representation assuming a constant compound
@@ -224,7 +225,7 @@ in tabulated form.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sampling Algorithm}
 
-While the distribution function in \eqref{eq:spectrum} does not naturally lend
+While the distribution function in \autoref{eq:spectrum} does not naturally lend
 itself to standard techniques for non-uniform random variate generation, an
 algorithm can be developed based on the physical processes outlined in the
 derivation of the spectrum. The center-of-mass energy spectrum was given as the
@@ -252,11 +253,11 @@ expression from Terrell~\cite{physrev-terrell-1959}:
 where $\mu$ is the cosine of the angle of emission in the center-of-mass
 system. It is well known that the cosine of an isotropic angular distribution is
 uniformly distribution on $[-1,1]$. Thus, it can be sampled as $\mu = 2\xi_4 -
-1$. Finally, we must use \eqref{eq:com-to-lab2} half of the time with $\efl$ and
+1$. Finally, we must use \autoref{eq:com-to-lab2} half of the time with $\efl$ and
 half of the time with $\efh$ to achieve a distribution that is the average of
 the light fragment and heavy fragment distribution. This can be done easily by
 sampling a uniform random variate and checking whether it is less than one-half,
-and if so using $\efl$ in \eqref{eq:com-to-lab2}.
+and if so using $\efl$ in \autoref{eq:com-to-lab2}.
 
 Combining all the steps above, a summary of the algorithm is given in
 \autoref{alg:madland-nix}. Despite the probability distribution function of the
@@ -291,7 +292,7 @@ take a Maxwellian spectrum
 \begin{equation*}
   \Phi(\epsilon) = \frac{2}{\sqrt{\pi T}} \sqrt{\epsilon} e^{-\epsilon/T},
 \end{equation*}
-insert it in \eqref{eq:com-to-lab}, and evaluate the integral, we obtain
+insert it in \autoref{eq:com-to-lab}, and evaluate the integral, we obtain
 \begin{equation}
   W(E) = \frac{e^{-\ef/T}}{\sqrt{\pi \ef T}} e^{-E/T} \sinh \sqrt{\frac{4\ef
       E}{T^2}}.
@@ -302,15 +303,15 @@ The Watt spectrum is usually characterized by two parameters $a$ and $b$ as
   W(E) = \frac{2e^{-ab/4}}{\sqrt{\pi a^3 b}} e^{-E/a} \sinh \sqrt{bE}.
   \label{eq:watt2}
 \end{equation}
-Comparing \eqref{eq:watt1} and \eqref{eq:watt2}, we can relate the Watt
+Comparing \autoref{eq:watt1} and \autoref{eq:watt2}, we can relate the Watt
 parameters to $\ef$ and $T$:
 \begin{align*}
   a &= T \\
   b &= \frac{4\ef}{T^2}.
 \end{align*}
 Thus, the fragment kinetic energy per nucleon can be expressed as $\ef =
-a^2b/4$. Substituting this expression into into \eqref{eq:com-to-lab2} gives us
-the direct sampling scheme in~\cite{lanl-brown-2005}:
+a^2b/4$. Substituting this expression into into \autoref{eq:com-to-lab2} gives us
+the direct sampling scheme in Brown~\cite{lanl-brown-2005}:
 \begin{equation*}
   E = \epsilon + \frac{a^2b}{4} + \mu \sqrt{a^2 b \epsilon}
 \end{equation*}
@@ -322,7 +323,7 @@ where $\epsilon$ is sampled from a Maxwellian spectrum.
 To confirm that \autoref{alg:madland-nix} does generate random variates from the
 proper distribution function, a small program was written in Python to generate
 variates and compare the distribution of the variates with the analytical form
-given in \eqref{eq:spectrum}. To obtain a sufficiently smooth distribution, 10
+given in \autoref{eq:spectrum}. To obtain a sufficiently smooth distribution, 10
 million variates were generated. \autoref{fig:madland} shows the observed
 distribution given the parameters $\efl = \SI{1.062}{\mega\electronvolt}$, $\efh
 = \SI{0.499}{\mega\electronvolt}$, and $\tmax = \SI{1.019}{\mega\electronvolt}$
@@ -336,7 +337,7 @@ energies whereas the Maxwellian spectrum exhibits higher probability per unit
 energy. We see that the distribution of the generated variates does match the
 analytical form for the Madland-Nix spectra in the high energy tail.
 \begin{figure}[htbp]
-  \centering \includegraphics[width=3.5in]{../images/spectrum-semilogy.eps}
+  \centering \includegraphics[width=3.5in]{images/spectrum-semilogy.pdf}
   \caption{Energy distribution of random variates generated using
     \autoref{alg:madland-nix} compared to analytical predictions of the
     Madland-Nix, Maxwellian, and Watt spectra.}
@@ -346,10 +347,10 @@ analytical form for the Madland-Nix spectra in the high energy tail.
 \autoref{fig:madland2} shows the distribution of the same random variates as
 shown in \autoref{fig:madland} except that they have been tabulated on equal
 logarithmic intervals in energy. This allows us to focus on the low-energy tail
-to confirm that it matches the expected distribution in \eqref{eq:spectrum}.
+to confirm that it matches the expected distribution in \autoref{eq:spectrum}.
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=3.5in]{../images/spectrum-loglog.eps}
+  \includegraphics[width=3.5in]{images/spectrum-loglog.pdf}
   \caption{Energy distribution of random variates generated using
     \autoref{alg:madland-nix} compared to analytical predictions of the
     Madland-Nix, Maxwellian, and Watt spectra focusing on the low-energy tail of
@@ -375,8 +376,9 @@ that the generated variates do match the analytical form of the probability
 distribution function.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{References}
 
-\bibliographystyle{siam}
+\bibliographystyle{elsarticle-num}
 \bibliography{references}
 
 \end{document}
