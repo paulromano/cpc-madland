@@ -1,4 +1,4 @@
-slides = siam-madland
+slides = cpc-madland
 
 all: build/${slides}.pdf
 
