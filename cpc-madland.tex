@@ -2,7 +2,7 @@
 \journal{Computer Physics Communications}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage[charter]{mathdesign} % Type-1 Latin Modern modern
+\usepackage[charter]{mathdesign}
 \usepackage[T1]{fontenc}         % Use T1 encoding instead of OT1
 \usepackage[utf8]{inputenc}      % Use UTF8 input encoding
 \usepackage{microtype}           % Improve typography
@@ -12,7 +12,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
-\usepackage[exponent-product=\cdot]{siunitx}
+\usepackage[binary-units=true,exponent-product=\cdot]{siunitx}
 
 \usepackage[colorlinks,breaklinks]{hyperref}
 
@@ -20,8 +20,9 @@
 \usepackage[labelfont=bf]{caption}
 \captionsetup[figure]{labelsep=period, name=Fig.}
 \captionsetup[table]{labelsep=newline}
+\usepackage{subcaption}
 
-% Set abbreviations
+% Set correct abbreviations
 \def\equationautorefname{Eq.}
 \def\figureautorefname{Fig.}
 \def\algorithmautorefname{Algorithm}
@@ -42,15 +43,16 @@
 \ead{paul.romano@unnpp.gov}
 \cortext[cor1]{Corresponding author. Tel.: +1 518 395 4010.}
 
-\address{Bechtel Marine Propulsion Corporation -- Knolls Atomic Power
+\address{Bechtel Marine Propulsion Corporation, Knolls Atomic Power
   Laboratory \\ P.O. Box 1072, Schenectady, NY 12301, United States}
+
 
 \begin{abstract}
   An algorithm for generating random variates from the Madland-Nix fission
   energy spectrum assuming a constant compound nucleus cross section is given
   based on physics considerations. A program was written to generate variates
   using the algorithm developed, and it was shown that the generated variates
-  match the probability distribution function. This algorithm can be used by
+  match the probability density function. This algorithm can be used by
   Monte Carlo particle transport codes to sample secondary energies for neutrons
   born from fission when the underlying data is given as parameters to a
   Madland-Nix energy spectrum.
@@ -92,7 +94,7 @@ the parameters of the analytical function rather than a large tabulated dataset.
 For fission reactions, several analytical forms exist to describe the energy
 distribution of outgoing neutrons. Two simple forms are the Maxwellian energy
 spectrum and the Watt energy spectrum~\cite{physrev-watt-1952}. The Maxwellian
-and Watt energy spectra have the advantage that their probability distribution
+and Watt energy spectra have the advantage that their probability density
 functions are relatively simple; there are numerous algorithms for generating
 random variates from these distributions. This, in turn, means that Monte Carlo
 particle transport codes need only store the parameters for these
@@ -101,42 +103,42 @@ single parameter; for the Watt spectrum, it is fully defined by two parameters.
 
 While the Maxwellian and Watt distributions give reasonable fits to fission
 energy spectra for many nuclides, both distributions neglect several important
-physical effects. An improvement on these spectra was made by Madland and
-Nix~\cite{nse-madland-1982} by accounting for the distribution of
-fission-fragment residual nuclear temperature and the energy dependence of the
-cross section for the inverse process of compound nucleus formation. The result
-is known as the Madland-Nix energy spectrum, also sometimes referred to as the
-Los Alamos model.
+physical effects. An improvement on these spectra was made by Madland and Nix
+\cite{nse-madland-1982} by accounting for the distribution of fission-fragment
+residual nuclear temperature and the energy dependence of the cross section for
+the inverse process of compound nucleus formation. The result is known as the
+Madland-Nix energy spectrum, also sometimes referred to as the Los Alamos
+model.
 
 Due to the success of the Madland-Nix theory in predicting and fitting
 experimental data for prompt fission neutron energy spectra, an option is
 available in the ENDF-6 format to represent energy spectra by specifying
-parameters to the Madland-Nix distribution function. In the ENDF/B-VII.1 data
+parameters to the Madland-Nix density function. In the ENDF/B-VII.1 data
 library~\cite{nds-chadwick-2011}, $^{241}$Am and $^{243}$Am have fission neutron
 energy distributions that use the Madland-Nix representation.
 
-As will be shown in \autoref{sec:distribution}, the distribution function for
-the Madland-Nix spectrum consists of a combination of exponential integrals and
-incomplete gamma functions. As such, the analytical form does not lend itself to
-any straightforward sampling scheme; the current norm is for nuclear data
+As will be shown in \autoref{sec:density}, the density function for the
+Madland-Nix spectrum consists of a combination of exponential integrals and
+incomplete gamma functions. As such, the analytical form does not lend itself
+to any straightforward sampling scheme; the current norm is for nuclear data
 processing codes, such as NJOY~\cite{lanl-macfarlane-2012} and
 NDEX~\cite{snamc-griesheimer-2013}, to convert these spectra to tabulated
-distribution functions before writing them to data files used for Monte Carlo
+density functions before writing them to data files used for Monte Carlo
 simulations.
 
 In this paper, an algorithm to generate random variates from the Madland-Nix
-distribution function as specified by the ENDF-6 format is given. This algorithm
+density function as specified by the ENDF-6 format is given. This algorithm
 will 1) enable nuclear data processing codes to pass evaluated data for such
 energy spectra directly to the formats used by Monte Carlo particle transport
 codes and 2) enable Monte Carlo codes to sample the energy distribution given
-the parameters for the Madland-Nix distribution function.
+the parameters for the Madland-Nix density function.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Distribution Function}
-\label{sec:distribution}
+\section{Density Function}
+\label{sec:density}
 
 It is instructive to first go through a derivation of the Madland-Nix
-distribution function as the details of the derivation will be useful for
+density function as the details of the derivation will be useful for
 developing a sampling algorithm. Madland and Nix's
 approach~\cite{nse-madland-1982} was to use evaporation theory to determine the
 neutron energy spectrum in the center-of-mass system and then to transform it to
@@ -187,11 +189,11 @@ function in the laboratory system can be shown to be~\cite{physrev-terrell-1959}
 \end{equation}
 Inserting \autoref{eq:com} into \autoref{eq:com-to-lab} and evaluating the integral
 analytically yields the energy distribution in the laboratory system:
-\begin{multline}
+\begin{equation}
   g(E,\ef) = \frac{1}{3\sqrt{\ef \tmax}} \bigg [ u_2^{3/2} \expint (u_2) -
-    u_1^{3/2} \expint (u_1) \\ + \gamma \left( \frac{3}{2}, u_2 \right ) -
+    u_1^{3/2} \expint (u_1) + \gamma \left( \frac{3}{2}, u_2 \right ) -
     \gamma \left( \frac{3}{2}, u_1 \right) \bigg ]
-\end{multline}
+\end{equation}
 where $u_1 = \left ( \sqrt{E} - \sqrt{\ef} \right )^2/\tmax$, $u_2 = \left (
 \sqrt{E} + \sqrt{\ef} \right)^2/\tmax$, and $\gamma(a,x)$ is the lower incomplete
 gamma function defined as
@@ -225,7 +227,7 @@ in tabulated form.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sampling Algorithm}
 
-While the distribution function in \autoref{eq:spectrum} does not naturally lend
+While the density function in \autoref{eq:spectrum} does not naturally lend
 itself to standard techniques for non-uniform random variate generation, an
 algorithm can be developed based on the physical processes outlined in the
 derivation of the spectrum. The center-of-mass energy spectrum was given as the
@@ -251,16 +253,16 @@ expression from Terrell~\cite{physrev-terrell-1959}:
   \label{eq:com-to-lab2}
 \end{equation}
 where $\mu$ is the cosine of the angle of emission in the center-of-mass
-system. It is well known that the cosine of an isotropic angular distribution is
-uniformly distribution on $[-1,1]$. Thus, it can be sampled as $\mu = 2\xi_4 -
-1$. Finally, we must use \autoref{eq:com-to-lab2} half of the time with $\efl$ and
-half of the time with $\efh$ to achieve a distribution that is the average of
-the light fragment and heavy fragment distribution. This can be done easily by
-sampling a uniform random variate and checking whether it is less than one-half,
-and if so using $\efl$ in \autoref{eq:com-to-lab2}.
+system. It is well known that the cosine of an isotropic angular distribution
+is uniformly distributed on $[-1,1]$. Thus, it can be sampled as $\mu = 2\xi_4
+- 1$. Finally, we must use \autoref{eq:com-to-lab2} half of the time with
+$\efl$ and half of the time with $\efh$ to achieve a distribution that is the
+average of the light fragment and heavy fragment distribution. This can be done
+easily by sampling a uniform random variate, $\xi_5$, checking whether it is
+less than one-half, and if so using $\efl$ in \autoref{eq:com-to-lab2}.
 
 Combining all the steps above, a summary of the algorithm is given in
-\autoref{alg:madland-nix}. Despite the probability distribution function of the
+\autoref{alg:madland-nix}. Despite the probability density function of the
 Madland-Nix spectrum being quite complex, the algorithm presented here requires
 no rejections, no evaluations of special functions, and only five uniform
 variates.
@@ -311,7 +313,7 @@ parameters to $\ef$ and $T$:
 \end{align*}
 Thus, the fragment kinetic energy per nucleon can be expressed as $\ef =
 a^2b/4$. Substituting this expression into into \autoref{eq:com-to-lab2} gives us
-the direct sampling scheme in Brown~\cite{lanl-brown-2005}:
+the direct sampling scheme in~\cite{lanl-brown-2005}:
 \begin{equation*}
   E = \epsilon + \frac{a^2b}{4} + \mu \sqrt{a^2 b \epsilon}
 \end{equation*}
@@ -320,48 +322,90 @@ where $\epsilon$ is sampled from a Maxwellian spectrum.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 
-To confirm that \autoref{alg:madland-nix} does generate random variates from the
-proper distribution function, a small program was written in Python to generate
-variates and compare the distribution of the variates with the analytical form
-given in \autoref{eq:spectrum}. To obtain a sufficiently smooth distribution, 10
-million variates were generated. \autoref{fig:madland} shows the observed
-distribution given the parameters $\efl = \SI{1.062}{\mega\electronvolt}$, $\efh
-= \SI{0.499}{\mega\electronvolt}$, and $\tmax = \SI{1.019}{\mega\electronvolt}$
-compared to the true distribution function. These parameters were used by
-Madland and Nix~\cite{nse-madland-1982}. Also as a point of comparison, the
-Maxwellian and Watt energy spectra with parameters determined by equating
-moments of the distribution with those of the Madland-Nix distribution (see
-Equations 20 and 21 in~\cite{nse-madland-1982}) are plotted. The Watt spectrum
-has lower probability per unit energy relative to the Madland-Nix at higher
-energies whereas the Maxwellian spectrum exhibits higher probability per unit
-energy. We see that the distribution of the generated variates does match the
-analytical form for the Madland-Nix spectra in the high energy tail.
-\begin{figure}[htbp]
-  \centering \includegraphics[width=3.5in]{images/spectrum-semilogy.pdf}
-  \caption{Energy distribution of random variates generated using
-    \autoref{alg:madland-nix} compared to analytical predictions of the
-    Madland-Nix, Maxwellian, and Watt spectra.}
-  \label{fig:madland}
+In order to compare the speed and accuracy of the proposed algorithm, a program
+was written in Julia~\cite{arxiv-bezanson-2012} to generate variates using
+\autoref{alg:madland-nix} as well as the traditional algorithm used by Monte
+Carlo neutron transport codes (a search on the tabulated cumulative
+distribution function). For \autoref{alg:madland-nix}, variates are generated
+using the $\tmax$, $\efl$, and $\efh$ parameters from the ENDF file. Values of
+$\tmax$ corresponding to energies between those tabulated are determined using
+the interpolation scheme specified in the ENDF file. For the traditional
+algorithm, the ENDF file first needs to be processed using NJOY, resulting in
+an ACE file that contains a tabulated probability density function (pdf) and
+cumulative distribution function (cdf) at each incoming neutron energy for
+which $\tmax$ is tabulated. However, since the tabulated distributions are only
+given at specific incident energies, unit base
+interpolation~\cite{nse-doyas-1972} is used to generate variates as an
+approximation. Thus, the traditional algorithm is exact only at the tabulated
+incident energies.
+
+Random variates were generated for the ENDF/B-VII.1 $^{241}$Am fission spectrum
+at two incident neutron energies. The first energy, $\SI{1e-5}{\electronvolt}$,
+was chosen to correspond to an incident energy at which $\tmax$ was
+tabulated. Based on the discussion above, both \autoref{alg:madland-nix} and
+the traditional algorithm should be exact.  \autoref{fig:point} shows the
+observed distribution of 10 million variates produced by each algorithm
+compared to the analytical form given in \autoref{eq:spectrum}. We see that the
+distribution of the generated variates for both algorithms matches the
+analytical form for the Madland-Nix spectra in both the low-energy and
+high-energy tails.
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[t]{0.45\textwidth}
+    \includegraphics[width=3.0in]{images/spectrum-point-semilogy.pdf}
+    \caption{High-energy tail}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[t]{0.45\textwidth}
+    \includegraphics[width=3.0in]{images/spectrum-point-loglog.pdf}
+    \caption{Low-energy tail}
+  \end{subfigure}
+  \caption{Distribution of random variates for the $^{241}$Am fission spectrum
+    at $\SI{1e-5}{\electronvolt}$ generated using \autoref{alg:madland-nix} and
+    the traditional algorithm compared to \autoref{eq:spectrum}. Error bars
+    represent the $2\sigma$ uncertainty.}
+  \label{fig:point}
 \end{figure}
 
-\autoref{fig:madland2} shows the distribution of the same random variates as
-shown in \autoref{fig:madland} except that they have been tabulated on equal
-logarithmic intervals in energy. This allows us to focus on the low-energy tail
-to confirm that it matches the expected distribution in \autoref{eq:spectrum}.
-\begin{figure}[htbp]
+
+The second energy, $\SI{0.02}{\electronvolt}$, was chosen to correspond to an
+incident energy between values at which $\tmax$ was tabulated, implying that
+the traditional algorithm may not be exact. \autoref{fig:between} shows the
+observed distribution of 10 million variates produced by each algorithm
+compared to the analytical form in \autoref{eq:spectrum}. Again, both
+algorithms are shown to be very accurate in the low-energy and high-energy
+tails.
+\begin{figure}[H]
   \centering
-  \includegraphics[width=3.5in]{images/spectrum-loglog.pdf}
-  \caption{Energy distribution of random variates generated using
-    \autoref{alg:madland-nix} compared to analytical predictions of the
-    Madland-Nix, Maxwellian, and Watt spectra focusing on the low-energy tail of
-    the distribution.}
-  \label{fig:madland2}
+  \begin{subfigure}[t]{0.45\textwidth}
+    \includegraphics[width=3.0in]{images/spectrum-between-semilogy.pdf}
+    \caption{High-energy tail}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[t]{0.45\textwidth}
+    \includegraphics[width=3.0in]{images/spectrum-between-loglog.pdf}
+    \caption{Low-energy tail}
+  \end{subfigure}
+  \caption{Distribution of random variates for the $^{241}$Am fission spectrum
+    at $\SI{0.02}{\electronvolt}$ generated using \autoref{alg:madland-nix} and
+    the traditional algorithm compared to \autoref{eq:spectrum}. Error bars
+    represent the $2\sigma$ uncertainty.}
+  \label{fig:between}
 \end{figure}
+
+In terms of speed, \autoref{alg:madland-nix} was found to be slightly faster
+than the traditional algorithm for the cases being tested. To generate 10
+million variates, the traditional algorithm took \SI{0.83}{\second} compared to
+\SI{0.57}{\second} for \autoref{alg:madland-nix}. There is also a substantial
+savings in memory space; for the ENDF/B-VII.1 $^{241}$Am fission spectrum,
+\autoref{alg:madland-nix} needs \SI{904}{\byte} of data for all incoming
+neutron energies whereas the traditional algorithm requires
+\SI{79.4}{\kilo\byte}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 
-By going through a derivation of the probability distribution function for the
+By going through a derivation of the probability density function for the
 Madland-Nix spectrum, it was shown that an algorithm could be devised to
 generate random variates for the spectrum based on physics considerations. This
 algorithm can be used by Monte Carlo particle transport codes to sample
@@ -370,10 +414,12 @@ Madland-Nix distribution, and only the parameters $\tmax$, $\efl$, and $\efh$
 need to be stored in memory. Furthermore, if Monte Carlo codes can use the
 parameters directly to sample the Madland-Nix spectrum, nuclear data processing
 codes do not need convert the source data from an ENDF-6 format evaluation into
-a tabulated probability distribution. Lastly, a Python program was written to
-generate random variates using the algorithm developed herein, and it was shown
-that the generated variates do match the analytical form of the probability
-distribution function.
+a tabulated probability distribution. Lastly, a Julia program was written to
+generate random variates using the algorithm developed herein as well as a
+traditional search on the tabulated cumulative density function. A comparison
+of the algorithms showed that both are accurate when compared to the analytical
+form of the probability density function while the newly developed algorithm is
+slightly faster for the cases examined.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{References}

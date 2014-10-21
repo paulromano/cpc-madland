@@ -2,10 +2,7 @@ slides = cpc-madland
 
 all: build/${slides}.pdf
 
-images: images/spectrum-semilogy.pdf
-
-images/spectrum-semilogy.pdf: images/spectrum.py
-	cd images; python spectrum.py
+images: images/spectrum-point-semilogy.pdf
 
 build/${slides}.pdf: ${slides}.tex references.bib images
 	mkdir -p build
